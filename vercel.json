@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd User-Call-Automation && pnpm install && pnpm run build",
-  "outputDirectory": "User-Call-Automation/.next",
-  "installCommand": "cd User-Call-Automation && pnpm install",
-  "framework": "nextjs"
-}
