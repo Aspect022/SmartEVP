@@ -7,6 +7,15 @@ export async function GET(
   { params }: { params: { callId: string } }
 ) {
   try {
+    if (!AGENT_API_URL || AGENT_API_URL === 'http://localhost:8000') {
+      return NextResponse.json(
+        { 
+          error: 'Backend API URL not configured. Please set AGENT_API_URL environment variable in Vercel.'
+        },
+        { status: 500 }
+      )
+    }
+
     const response = await fetch(`${AGENT_API_URL}/api/calls/${params.callId}`, {
       cache: 'no-store',
     })
@@ -18,14 +27,20 @@ export async function GET(
           { status: 404 }
         )
       }
-      throw new Error('Failed to fetch call')
+      const errorText = await response.text()
+      console.error('Backend error:', response.status, errorText)
+      throw new Error(`Backend returned ${response.status}: ${errorText}`)
     }
     
     const data = await response.json()
     return NextResponse.json(data)
   } catch (error: any) {
+    console.error('API route error:', error)
     return NextResponse.json(
-      { error: error.message },
+      { 
+        error: error.message || 'Failed to fetch call',
+        backendUrl: AGENT_API_URL
+      },
       { status: 500 }
     )
   }
