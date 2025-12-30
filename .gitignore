@@ -1,0 +1,181 @@
+############################################
+# 🔥 GLOBAL / OS FILES
+############################################
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+############################################
+# 🔥 EDITORS & IDEs
+############################################
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains (PyCharm, WebStorm, IntelliJ)
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+
+############################################
+# 🔥 ENVIRONMENT & SECRETS (CRITICAL)
+############################################
+
+.env
+.env.*
+!.env.example
+
+# Python dotenv
+.envrc
+
+############################################
+# 🔥 PYTHON / FASTAPI
+############################################
+
+# Virtual Environments
+venv/
+env/
+.venv/
+.conda/
+__pypackages__/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# MyPy / Ruff / Pyright
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# Logs
+*.log
+
+############################################
+# 🔥 NODE / REACT / NEXT.JS
+############################################
+
+# Node modules
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# React build
+build/
+
+# Vite
+dist/
+.vite/
+
+# Cache
+.cache/
+.npm/
+.pnpm-store/
+
+############################################
+# 🔥 PACKAGE MANAGERS
+############################################
+
+# npm
+npm-debug.log*
+package-lock.json
+
+# yarn
+yarn-debug.log*
+yarn-error.log*
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# pnpm
+pnpm-debug.log*
+
+############################################
+# 🔥 DATABASES & STORAGE
+############################################
+
+# SQLite
+*.sqlite
+*.sqlite3
+*.db
+
+# Local uploads / storage
+uploads/
+media/
+storage/
+
+############################################
+# 🔥 DOCKER
+############################################
+
+# Docker runtime files
+docker-data/
+.docker/
+
+############################################
+# 🔥 TEST / TEMP FILES
+############################################
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.old
+*.orig
+
+############################################
+# 🔥 JUPYTER / DATA SCIENCE (OPTIONAL BUT SAFE)
+############################################
+
+.ipynb_checkpoints/
+*.ipynb
+
+############################################
+# 🔥 MISC
+############################################
+
+# Local config overrides
+config.local.*
+settings.local.*
+
+# Logs
+logs/
+
+# Runtime
+.pid
+*.pid
