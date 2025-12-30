@@ -21,7 +21,17 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 if not GEMINI_API_KEY:
     print("Warning: GEMINI_API_KEY not found in environment variables")
-genai.configure(api_key=GEMINI_API_KEY)
+    # Don't crash, but the API calls will fail - this is handled in process_call
+    # Set a dummy key to prevent configuration errors
+    try:
+        genai.configure(api_key='dummy-key-for-initialization')
+    except:
+        pass
+else:
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+    except Exception as e:
+        print(f"Error configuring Gemini API: {e}")
 
 @dataclass
 class CallData:
@@ -44,13 +54,24 @@ class AmbulanceCallAgent:
     """Agent that processes emergency calls and extracts structured data"""
     
     def __init__(self):
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        # Initialize model only if API key is available
+        self.model = None
+        if GEMINI_API_KEY:
+            try:
+                self.model = genai.GenerativeModel('gemini-1.5-flash')
+            except Exception as e:
+                print(f"Warning: Failed to initialize Gemini model: {e}")
+        
         self.active_calls: Dict[str, CallData] = {}
         # Load existing calls from storage
-        stored_calls = load_calls()
-        self.call_history = [
-            CallData(**call_dict) for call_dict in stored_calls
-        ]
+        try:
+            stored_calls = load_calls()
+            self.call_history = [
+                CallData(**call_dict) for call_dict in stored_calls
+            ]
+        except Exception as e:
+            print(f"Warning: Failed to load stored calls: {e}")
+            self.call_history = []
         
         # Configure safety settings
         self.safety_settings = {
@@ -129,6 +150,10 @@ Extract location details as accurately as possible.
 List all symptoms mentioned.
 Return valid JSON only, no markdown formatting.
 """
+        
+        # Check if model is available
+        if not self.model:
+            raise Exception("Gemini API key not configured. Please set GEMINI_API_KEY environment variable.")
         
         try:
             response = self.model.generate_content(

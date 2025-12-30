@@ -8,7 +8,12 @@ import os
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
-STORAGE_FILE = 'call_records.json'
+# Use /tmp for serverless environments (Vercel, AWS Lambda)
+# This directory is writable in serverless functions
+if os.path.exists('/tmp'):
+    STORAGE_FILE = '/tmp/call_records.json'
+else:
+    STORAGE_FILE = 'call_records.json'
 
 def load_calls() -> List[dict]:
     """Load all call records from file"""
