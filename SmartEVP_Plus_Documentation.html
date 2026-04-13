@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartEVP+ — Emergency Response Intelligence System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b12;
+    --bg2: #0d1117;
+    --bg3: #111620;
+    --card: #131924;
+    --border: #1e2838;
+    --border2: #243044;
+    --red: #ff3b3b;
+    --red-dim: #cc2a2a;
+    --amber: #f59e0b;
+    --amber-dim: #b57a08;
+    --cyan: #22d3ee;
+    --cyan-dim: #0e9ab5;
+    --green: #4ade80;
+    --green-dim: #22863a;
+    --purple: #a78bfa;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --glow-red: 0 0 30px rgba(255,59,59,0.15);
+    --glow-amber: 0 0 30px rgba(245,158,11,0.15);
+    --glow-cyan: 0 0 30px rgba(34,211,238,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .content { position: relative; z-index: 1; }
+
+  /* ─── NAVIGATION ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(8,11,18,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--red);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .nav-logo span { color: var(--text-dim); }
+
+  nav ul {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+    margin-left: auto;
+  }
+
+  nav ul a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  nav ul a:hover { color: var(--text); }
+
+  .nav-badge {
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 80px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,59,59,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,59,59,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,59,59,0.08) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    pointer-events: none;
+  }
+
+  .hero-glow-2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%);
+    bottom: 0; right: 10%;
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 32px;
+    height: 1px;
+    background: var(--red);
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(52px, 7vw, 96px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 .line1 { color: var(--text); display: block; }
+  .hero h1 .line2 {
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.2);
+    display: block;
+  }
+  .hero h1 .line3 { color: var(--red); display: block; }
+
+  .hero-sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text-dim);
+    margin: 24px 0 40px;
+    max-width: 520px;
+    line-height: 1.5;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 48px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-item { }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-num .unit { font-size: 18px; color: var(--red); }
+  .stat-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+  .hero-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+
+  .tag {
+    padding: 4px 12px;
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .tag.red { border-color: rgba(255,59,59,0.4); color: var(--red); background: rgba(255,59,59,0.05); }
+  .tag.amber { border-color: rgba(245,158,11,0.4); color: var(--amber); background: rgba(245,158,11,0.05); }
+  .tag.cyan { border-color: rgba(34,211,238,0.4); color: var(--cyan); background: rgba(34,211,238,0.05); }
+
+  /* ─── SECTIONS ─── */
+  section {
+    padding: 80px 80px;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label .num {
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .section-desc {
+    color: var(--text-dim);
+    max-width: 600px;
+    line-height: 1.8;
+    margin-bottom: 48px;
+    font-size: 13px;
+  }
+
+  /* ─── PIPELINE FLOW ─── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 48px 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .pipe-step {
+    flex: 1;
+    min-width: 160px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px 20px;
+    position: relative;
+  }
+
+  .pipe-step:first-child { border-radius: 6px 0 0 6px; }
+  .pipe-step:last-child { border-radius: 0 6px 6px 0; }
+
+  .pipe-step + .pipe-step {
+    border-left: none;
+  }
+
+  .pipe-step::after {
+    content: '→';
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--text-muted);
+    z-index: 2;
+    background: var(--bg);
+    width: 28px;
+    text-align: center;
+  }
+
+  .pipe-step:last-child::after { display: none; }
+
+  .pipe-num {
+    font-size: 10px;
+    color: var(--red);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .pipe-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .pipe-desc { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+
+  .pipe-step.red { border-top: 2px solid var(--red); }
+  .pipe-step.amber { border-top: 2px solid var(--amber); }
+  .pipe-step.cyan { border-top: 2px solid var(--cyan); }
+  .pipe-step.green { border-top: 2px solid var(--green); }
+  .pipe-step.purple { border-top: 2px solid var(--purple); }
+
+  /* ─── SUBSYSTEM CARDS ─── */
+  .subsystems {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 48px;
+  }
+
+  .sub-card {
+    background: var(--card);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sub-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .sub-card.s1::before { background: var(--red); }
+  .sub-card.s2::before { background: var(--amber); }
+  .sub-card.s3::before { background: var(--cyan); }
+  .sub-card.s4::before { background: var(--green); }
+  .sub-card.s5::before { background: var(--purple); }
+
+  .sub-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .sub-num {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .sub-card.s1 .sub-num { color: var(--red); }
+  .sub-card.s2 .sub-num { color: var(--amber); }
+  .sub-card.s3 .sub-num { color: var(--cyan); }
+  .sub-card.s4 .sub-num { color: var(--green); }
+  .sub-card.s5 .sub-num { color: var(--purple); }
+
+  .sub-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .sub-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; }
+
+  .sub-details { list-style: none; }
+  .sub-details li {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 6px 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .sub-details li::before {
+    content: '›';
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .sub-card.s1 .sub-details li::before { color: var(--red); }
+  .sub-card.s2 .sub-details li::before { color: var(--amber); }
+  .sub-card.s3 .sub-details li::before { color: var(--cyan); }
+  .sub-card.s4 .sub-details li::before { color: var(--green); }
+  .sub-card.s5 .sub-details li::before { color: var(--purple); }
+
+  /* ─── HARDWARE TABLE ─── */
+  .hw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .hw-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    position: relative;
+  }
+
+  .hw-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .hw-icon {
+    width: 40px; height: 40px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .hw-icon.red { background: rgba(255,59,59,0.1); border: 1px solid rgba(255,59,59,0.2); }
+  .hw-icon.amber { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+  .hw-icon.cyan { background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.2); }
+  .hw-icon.green { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.2); }
+
+  .hw-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .hw-role { font-size: 10px; color: var(--text-muted); letter-spacing: 0.05em; margin-top: 2px; text-transform: uppercase; }
+
+  .hw-specs { list-style: none; }
+  .hw-specs li {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 5px 0;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .hw-specs li .key { color: var(--text-dim); }
+  .hw-specs li .val { color: var(--text); text-align: right; font-weight: 500; }
+
+  .hw-price {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hw-price .price { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--amber); font-size: 14px; }
+
+  /* ─── COMMUNICATION ARCHITECTURE ─── */
+  .mqtt-flow {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 40px;
+    margin-top: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mqtt-flow::before {
+    content: 'MQTT MESSAGE BUS';
+    position: absolute;
+    top: 16px; right: 20px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+  }
+
+  /* ─── AI MODELS SECTION ─── */
+  .ai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .ai-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-card::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    opacity: 0.06;
+  }
+
+  .ai-card.vibevoice::after { background: var(--cyan); }
+  .ai-card.gemma::after { background: var(--amber); }
+
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .ai-badge.cyan { background: rgba(34,211,238,0.1); color: var(--cyan); border: 1px solid rgba(34,211,238,0.2); }
+  .ai-badge.amber { background: rgba(245,158,11,0.1); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+
+  .ai-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .ai-model { font-size: 11px; color: var(--text-muted); margin-bottom: 16px; }
+
+  .ai-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; }
+
+  .ai-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .ai-feature .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .dot.cyan { background: var(--cyan); }
+  .dot.amber { background: var(--amber); }
+
+  /* ─── DEMO FLOW ─── */
+  .demo-timeline {
+    position: relative;
+    padding-left: 32px;
+    margin-top: 32px;
+  }
+
+  .demo-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--red), var(--amber), var(--cyan), var(--green), var(--purple));
+  }
+
+  .demo-step {
+    position: relative;
+    padding: 0 0 40px 32px;
+  }
+
+  .demo-step::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 6px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+
+  .demo-step.d1::before { background: var(--red); }
+  .demo-step.d2::before { background: var(--amber); }
+  .demo-step.d3::before { background: var(--cyan); }
+  .demo-step.d4::before { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+  .demo-step.d5::before { background: var(--green); }
+  .demo-step.d6::before { background: var(--purple); }
+
+  .demo-time {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .demo-step.d1 .demo-time { color: var(--red); }
+  .demo-step.d2 .demo-time { color: var(--amber); }
+  .demo-step.d3 .demo-time { color: var(--cyan); }
+  .demo-step.d4 .demo-time { color: var(--cyan); }
+  .demo-step.d5 .demo-time { color: var(--green); }
+  .demo-step.d6 .demo-time { color: var(--purple); }
+
+  .demo-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .demo-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; max-width: 560px; }
+
+  .demo-highlight {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 14px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .demo-step.d4 .demo-highlight { background: rgba(34,211,238,0.1); color: var(--cyan); border: 1px solid rgba(34,211,238,0.3); }
+  .demo-step.d6 .demo-highlight { background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+
+  /* ─── SOFTWARE REQUIREMENTS ─── */
+  .sw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .sw-group { background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+
+  .sw-group-header {
+    padding: 12px 20px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sw-item {
+    padding: 10px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .sw-item:first-of-type { border-top: none; }
+  .sw-item .sw-name { color: var(--text); }
+  .sw-item .sw-ver { color: var(--text-muted); font-size: 10px; }
+
+  /* ─── MQTT DIAGRAM ─── */
+  .mqtt-nodes {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin: 24px 0;
+  }
+
+  .mqtt-node {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 140px;
+  }
+
+  .mqtt-node .node-icon { font-size: 22px; margin-bottom: 6px; }
+  .mqtt-node .node-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); }
+  .mqtt-node .node-role { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .mqtt-node .node-topics { margin-top: 8px; }
+  .mqtt-node .topic {
+    display: inline-block;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin: 2px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .mqtt-broker {
+    background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(34,211,238,0.02));
+    border-color: rgba(34,211,238,0.3);
+    position: relative;
+  }
+
+  .mqtt-broker .node-name { color: var(--cyan); }
+
+  .broker-label {
+    font-size: 10px;
+    text-align: center;
+    color: var(--cyan);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ─── TOPICS TABLE ─── */
+  .topics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 24px;
+    font-size: 11px;
+  }
+
+  .topics-table th {
+    text-align: left;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .topics-table td {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+
+  .topics-table td:first-child { color: var(--cyan); font-weight: 500; }
+  .topics-table tr:hover td { background: rgba(255,255,255,0.01); }
+
+  /* ─── BUILD TIMELINE ─── */
+  .build-phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 32px;
+  }
+
+  .build-phase { background: var(--card); padding: 24px; }
+
+  .phase-time {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .phase-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .phase-task {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 4px 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.5;
+  }
+
+  .phase-task::before { content: '□'; color: var(--border2); }
+
+  .phase-task.done::before { content: '✓'; color: var(--green); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    padding: 40px 80px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .footer-meta { font-size: 11px; color: var(--text-muted); }
+
+  /* ─── CALLOUT BOXES ─── */
+  .callout {
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .callout.info { background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); color: var(--text-dim); }
+  .callout.warn { background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2); color: var(--text-dim); }
+  .callout.tip { background: rgba(74,222,128,0.05); border: 1px solid rgba(74,222,128,0.2); color: var(--text-dim); }
+
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ─── CODE BLOCK ─── */
+  .code-block {
+    background: #0a0d0f;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+
+  .code-block .comment { color: var(--text-muted); }
+  .code-block .keyword { color: var(--cyan); }
+  .code-block .string { color: var(--green); }
+  .code-block .topic { color: var(--amber); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .hero { padding: 100px 24px 60px; }
+    section { padding: 60px 24px; }
+    footer { flex-direction: column; gap: 16px; padding: 32px 24px; }
+    .ai-grid { grid-template-columns: 1fr; }
+    .hero-stats { flex-wrap: wrap; gap: 24px; }
+  }
+
+  /* ─── SCROLL ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero > * { animation: fadeUp 0.6s ease both; }
+  .hero .hero-eyebrow { animation-delay: 0.1s; }
+  .hero h1 { animation-delay: 0.2s; }
+  .hero-sub { animation-delay: 0.3s; }
+  .hero-tags { animation-delay: 0.4s; }
+  .hero-stats { animation-delay: 0.5s; }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 0; }
+
+  /* ─── INLINE HIGHLIGHT ─── */
+  .hl { color: var(--text); font-weight: 600; }
+  .hl.red { color: var(--red); }
+  .hl.amber { color: var(--amber); }
+  .hl.cyan { color: var(--cyan); }
+  .hl.green { color: var(--green); }
+
+  /* ─── PRINT OPTIMIZATIONS ─── */
+  @media print {
+    body {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      background: var(--bg) !important;
+    }
+    
+    body::before {
+      display: none !important; /* Noise texture often breaks PDF rendering */
+    }
+
+    nav { display: none !important; }
+
+    .hero {
+      min-height: auto !important;
+      padding: 40px 80px 20px !important;
+      justify-content: flex-start !important;
+    }
+
+    .hero-glow, .hero-glow-2 { display: none !important; }
+
+    .hero-grid {
+      mask-image: none !important;
+      -webkit-mask-image: none !important;
+      opacity: 0.2 !important;
+    }
+
+    section {
+      padding: 40px 80px !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    h1 { font-size: 64px !important; }
+    .section-title { font-size: 32px !important; }
+
+    .pipeline {
+      display: grid !important;
+      grid-template-columns: repeat(5, 1fr) !important;
+      overflow: visible !important;
+      gap: 0 !important;
+    }
+
+    .hw-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .ai-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .build-phases {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    .subsystems {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .sub-card, .hw-card, .ai-card, .mqtt-flow {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="content">
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="nav-logo">Smart<span>EVP</span>+</div>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#hardware">Hardware</a></li>
+    <li><a href="#software">Software</a></li>
+    <li><a href="#ai-models">AI Models</a></li>
+    <li><a href="#comms">Comms</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#build">Build Plan</a></li>
+  </ul>
+  <a href="#" onclick="window.print(); return false;" class="nav-badge" style="background: var(--cyan); color: #080b12; text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+    🖨️ Save PDF
+  </a>
+  <div class="nav-badge">v2.0 — ERIS</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+
+  <div class="hero-eyebrow">Emergency Response Intelligence System</div>
+
+  <h1>
+    <span class="line1">SmartEVP</span>
+    <span class="line2">Emergency</span>
+    <span class="line3">Reimagined.</span>
+  </h1>
+
+  <p class="hero-sub">
+    A full end-to-end emergency dispatch, traffic preemption, and hospital readiness platform — built to run at the edge, in real time, for lives that can't wait.
+  </p>
+
+  <div class="hero-tags">
+    <span class="tag red">AI Voice Intake</span>
+    <span class="tag amber">Smart Dispatch</span>
+    <span class="tag">Traffic Preemption</span>
+    <span class="tag cyan">Edge AI on Pi</span>
+    <span class="tag">Hospital Readiness</span>
+    <span class="tag">VibeVoice-ASR</span>
+    <span class="tag amber">Gemma 4 E4B</span>
+    <span class="tag">MQTT</span>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num"><span class="unit">&lt;</span>5<span class="unit">s</span></div>
+      <div class="stat-label">End-to-End Latency</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Integrated Subsystems</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">0<span class="unit">₹</span></div>
+      <div class="stat-label">Recurring AI Cost</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">25<span class="unit">%</span></div>
+      <div class="stat-label">Faster Response Times</div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="section-label"><span class="num">01</span> System Overview</div>
+  <h2 class="section-title">One call. Five systems.<br>Zero delay.</h2>
+  <p class="section-desc">
+    SmartEVP+ is not a single device. It is a chain of five tightly integrated intelligence systems that hand off seamlessly — from the moment a citizen calls for help to the moment a doctor receives a complete pre-arrival patient report.
+  </p>
+
+  <!-- PIPELINE -->
+  <div class="pipeline">
+    <div class="pipe-step red">
+      <div class="pipe-num">01</div>
+      <div class="pipe-title">Emergency Intake</div>
+      <div class="pipe-desc">AI Voice Agent answers call instantly, extracts location & symptoms via VibeVoice-ASR</div>
+    </div>
+    <div class="pipe-step amber">
+      <div class="pipe-num">02</div>
+      <div class="pipe-title">Smart Dispatch</div>
+      <div class="pipe-desc">Locates nearest available ambulance, fires SMS to driver via Twilio</div>
+    </div>
+    <div class="pipe-step cyan">
+      <div class="pipe-num">03</div>
+      <div class="pipe-title">Traffic Preemption</div>
+      <div class="pipe-desc">ESP32 + GPS on ambulance triggers green corridor via Raspberry Pi + MQTT</div>
+    </div>
+    <div class="pipe-step green">
+      <div class="pipe-num">04</div>
+      <div class="pipe-title">Edge AI Intelligence</div>
+      <div class="pipe-desc">Gemma 4 E4B on Pi transcribes en-route audio, generates structured medical brief</div>
+    </div>
+    <div class="pipe-step purple">
+      <div class="pipe-num">05</div>
+      <div class="pipe-title">Hospital Readiness</div>
+      <div class="pipe-desc">Pre-arrival report auto-populates hospital dashboard before ambulance arrives</div>
+    </div>
+  </div>
+
+  <!-- FULL ARCHITECTURE SVG -->
+  <div style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 40px; margin-top: 48px;">
+    <div class="broker-label">FULL SYSTEM ARCHITECTURE</div>
+    <svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+        </marker>
+        <marker id="arrow-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#ff3b3b"/>
+        </marker>
+        <marker id="arrow-cyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#22d3ee"/>
+        </marker>
+        <marker id="arrow-amber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+        </marker>
+        <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4ade80"/>
+        </marker>
+        <filter id="glow-r">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+        </filter>
+      </defs>
+
+      <!-- CALLER -->
+      <rect x="20" y="30" width="130" height="64" rx="6" fill="#131924" stroke="#ff3b3b" stroke-width="1.5"/>
+      <text x="85" y="54" text-anchor="middle" font-family="Syne" font-size="12" font-weight="700" fill="#e2e8f0">📞 Caller</text>
+      <text x="85" y="72" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">Twilio Number</text>
+      <text x="85" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">+91-XXXXXXXXXX</text>
+
+      <!-- ARROW Caller → Voice Agent -->
+      <line x1="150" y1="62" x2="210" y2="62" stroke="#ff3b3b" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+      <text x="180" y="55" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ff3b3b">CALL</text>
+
+      <!-- VOICE AGENT -->
+      <rect x="215" y="16" width="150" height="92" rx="6" fill="#131924" stroke="#ff3b3b" stroke-width="1.5"/>
+      <text x="290" y="40" text-anchor="middle" font-family="Syne" font-size="11" font-weight="700" fill="#e2e8f0">🎙 AI Voice Agent</text>
+      <text x="290" y="57" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">VibeVoice-ASR 7B</text>
+      <text x="290" y="71" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Location extracted</text>
+      <text x="290" y="83" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Severity assessed</text>
+      <text x="290" y="95" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Hotwords: medical terms</text>
+
+      <!-- ARROW Voice → Dispatch -->
+      <line x1="365" y1="62" x2="420" y2="62" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+      <text x="392" y="55" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#f59e0b">JSON</text>
+
+      <!-- DISPATCH ENGINE -->
+      <rect x="425" y="20" width="145" height="84" rx="6" fill="#131924" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="497" y="44" text-anchor="middle" font-family="Syne" font-size="11" font-weight="700" fill="#e2e8f0">🗺 Dispatch Engine</text>
+      <text x="497" y="60" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">Flask Backend</text>
+      <text x="497" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Nearest ambulance</text>
+      <text x="497" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Twilio SMS fired</text>
+
+      <!-- SMS to Driver Phone -->
+      <line x1="497" y1="104" x2="497" y2="155" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-amber)"/>
+      <rect x="435" y="158" width="124" height="44" rx="6" fill="#131924" stroke="#f59e0b" stroke-width="1"/>
+      <text x="497" y="177" text-anchor="middle" font-family="Syne" font-size="11" font-weight="700" fill="#e2e8f0">📱 Driver SMS</text>
+      <text x="497" y="193" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">Twilio API</text>
+
+      <!-- MQTT BROKER (center) -->
+      <rect x="310" y="220" width="280" height="80" rx="6" fill="#0e1a2a" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="450" y="248" text-anchor="middle" font-family="Syne" font-size="13" font-weight="800" fill="#22d3ee">⚡ MQTT Broker</text>
+      <text x="450" y="265" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">Running on Raspberry Pi 4</text>
+      <text x="350" y="285" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#334155">evp/gps/coords</text>
+      <text x="450" y="285" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#334155">evp/signal/cmd</text>
+      <text x="555" y="285" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#334155">evp/audio/transcript</text>
+
+      <!-- ESP32 on Toy Ambulance -->
+      <rect x="20" y="225" width="140" height="68" rx="6" fill="#131924" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="90" y="248" text-anchor="middle" font-family="Syne" font-size="11" font-weight="700" fill="#e2e8f0">🚑 ESP32 + GPS</text>
+      <text x="90" y="263" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">Toy Ambulance</text>
+      <text x="90" y="278" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">NEO-6M GPS</text>
+      <text x="90" y="290" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">WiFi → MQTT pub</text>
+
+      <!-- ESP32 → MQTT -->
+      <line x1="160" y1="259" x2="308" y2="259" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+      <text x="234" y="251" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#22d3ee">GPS coords</text>
+
+      <!-- Raspberry Pi -->
+      <rect x="310" y="345" width="280" height="110" rx="6" fill="#131924" stroke="#4ade80" stroke-width="1.5"/>
+      <text x="450" y="370" text-anchor="middle" font-family="Syne" font-size="12" font-weight="700" fill="#e2e8f0">🍓 Raspberry Pi 4</text>
+      <text x="450" y="386" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">Central Edge AI Node</text>
+      <text x="360" y="406" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">• MQTT Broker (Mosquitto)</text>
+      <text x="360" y="420" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">• Flask REST API</text>
+      <text x="360" y="434" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">• Gemma 4 E4B (Ollama)</text>
+      <text x="360" y="448" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">• GPIO → LED Traffic Light</text>
+
+      <!-- MQTT → Pi -->
+      <line x1="450" y1="300" x2="450" y2="343" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+      <!-- LED Traffic Light -->
+      <rect x="20" y="355" width="130" height="90" rx="6" fill="#131924" stroke="#4ade80" stroke-width="1.5"/>
+      <text x="85" y="376" text-anchor="middle" font-family="Syne" font-size="11" font-weight="700" fill="#e2e8f0">🚦 LED Array</text>
+      <text x="85" y="393" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">GPIO Controlled</text>
+      <circle cx="55" cy="415" r="10" fill="#1a0a0a" stroke="#ff3b3b" stroke-width="1.5"/>
+      <circle cx="85" cy="415" r="10" fill="#1a1000" stroke="#f59e0b" stroke-width="1.5"/>
+      <circle cx="115" cy="415" r="10" fill="#001a08" stroke="#4ade80" stroke-width="1.5"/>
+      <text x="85" y="440" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#64748b">Breadboard demo</text>
+
+      <!-- Pi → LED -->
+      <line x1="308" y1="395" x2="152" y2="400" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+      <text x="230" y="388" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#4ade80">GPIO signal</text>
+
+      <!-- Hospital Dashboard -->
+      <rect x="660" y="225" width="220" height="100" rx="6" fill="#131924" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="770" y="250" text-anchor="middle" font-family="Syne" font-size="12" font-weight="700" fill="#e2e8f0">🏥 Hospital Dashboard</text>
+      <text x="770" y="266" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">React + WebSocket</text>
+      <text x="770" y="282" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Patient report auto-filled</text>
+      <text x="770" y="296" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ ETA countdown live</text>
+      <text x="770" y="310" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Resources pre-allocated</text>
+
+      <!-- Pi → Hospital -->
+      <line x1="590" y1="380" x2="770" y2="325" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="700" y="355" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#a78bfa">Medical Report</text>
+
+      <!-- Controller Dashboard -->
+      <rect x="660" y="370" width="220" height="84" rx="6" fill="#131924" stroke="#f59e0b" stroke-width="1"/>
+      <text x="770" y="394" text-anchor="middle" font-family="Syne" font-size="12" font-weight="700" fill="#e2e8f0">🖥 Controller Site</text>
+      <text x="770" y="410" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">Live Map + Analytics</text>
+      <text x="770" y="424" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ GPS tracking</text>
+      <text x="770" y="438" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Auth status, latency</text>
+      <text x="770" y="452" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#94a3b8">→ Audit log stream</text>
+
+      <!-- Pi → Controller -->
+      <line x1="590" y1="400" x2="658" y2="410" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+
+      <!-- Dispatch → MQTT -->
+      <line x1="497" y1="202" x2="497" y2="218" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-cyan)"/>
+
+    </svg>
+  </div>
+</section>
+
+<!-- SUBSYSTEMS -->
+<section id="subsystems">
+  <div class="section-label"><span class="num">02</span> Subsystem Breakdown</div>
+  <h2 class="section-title">Five systems,<br>one mission.</h2>
+  <p class="section-desc">Each subsystem is independently buildable but tightly coupled through MQTT and REST APIs. Here is the complete breakdown of what every component does, how it works, and what it produces.</p>
+
+  <div class="subsystems">
+    <div class="sub-card s1">
+      <span class="sub-icon">🎙</span>
+      <div class="sub-num">Subsystem 01 — Emergency Intake</div>
+      <div class="sub-title">AI Voice Agent</div>
+      <div class="sub-desc">When the emergency number is called, VibeVoice-ASR transcribes the conversation in real time. A Python agent parses the transcript to extract structured data — location, symptom keywords, caller language, and urgency level.</div>
+      <ul class="sub-details">
+        <li>Twilio handles inbound call routing to a Python webhook</li>
+        <li>VibeVoice-ASR-7B processes the audio stream for transcription with speaker diarization and timestamps</li>
+        <li>Hotwords configured: "chest pain", "breathing", "unconscious", "accident", "bleeding", "stroke" and more</li>
+        <li>Gemma 4 E4B parses transcript → outputs structured JSON: { location, severity, symptoms[] }</li>
+        <li>Fallback: Manual SMS input if voice fails indoors</li>
+      </ul>
+    </div>
+
+    <div class="sub-card s2">
+      <span class="sub-icon">🗺</span>
+      <div class="sub-num">Subsystem 02 — Smart Dispatch</div>
+      <div class="sub-title">Nearest Ambulance Engine</div>
+      <div class="sub-desc">The dispatch engine receives the structured emergency JSON, looks up active ambulances from a simple in-memory store (GPS positions updated via MQTT), computes distances, and allocates the nearest available unit.</div>
+      <ul class="sub-details">
+        <li>Haversine formula used for real-time distance computation between caller and ambulances</li>
+        <li>Ambulance status tracked: AVAILABLE / EN_ROUTE / ON_SCENE</li>
+        <li>Twilio SMS fired to driver with patient location, case ID, and urgency</li>
+        <li>If no movement detected within 90 seconds — second SMS + escalation alert triggered</li>
+        <li>Controller dashboard receives real-time dispatch event via WebSocket</li>
+      </ul>
+    </div>
+
+    <div class="sub-card s3">
+      <span class="sub-icon">🚦</span>
+      <div class="sub-num">Subsystem 03 — Traffic Preemption</div>
+      <div class="sub-title">SmartEVP Core</div>
+      <div class="sub-desc">The original SmartEVP system. ESP32 on the toy ambulance publishes GPS coordinates every second via WiFi to the MQTT broker on the Raspberry Pi. The Pi monitors proximity and triggers GPIO to flip LEDs green.</div>
+      <ul class="sub-details">
+        <li>ESP32-WROOM-32 reads NEO-6M GPS at 1Hz, publishes to topic: evp/gps/&lt;vehicle_id&gt;</li>
+        <li>Pi subscribes, computes distance to virtual intersection coordinates</li>
+        <li>At &lt;500m threshold: publishes to evp/signal/cmd → GPIO pin 18 triggers relay</li>
+        <li>ECC-256 signature on each GPS payload for authentication (OpenSSL)</li>
+        <li>Fallback: Coordinate replay from pre-recorded JSON route if GPS signal is weak indoors</li>
+        <li>Latency target: &lt;5s end-to-end (achieved 3.2s in testing)</li>
+      </ul>
+    </div>
+
+    <div class="sub-card s4">
+      <span class="sub-icon">🧠</span>
+      <div class="sub-num">Subsystem 04 — Edge AI</div>
+      <div class="sub-title">En-route Medical Intelligence</div>
+      <div class="sub-desc">While the ambulance is en route, the Raspberry Pi listens to the ambulance microphone audio stream (nurse/EMT narrating patient status). VibeVoice-ASR transcribes it. Gemma 4 E4B converts raw transcript into a clean, doctor-ready medical brief.</div>
+      <ul class="sub-details">
+        <li>Audio input via USB microphone attached to Raspberry Pi (demo: pre-recorded clip played)</li>
+        <li>VibeVoice-ASR processes audio — produces timestamped, speaker-diarized transcript</li>
+        <li>Gemma 4 E4B (4.5B active params, Ollama on Pi) generates structured medical brief</li>
+        <li>Output fields: Chief complaint, vitals, allergies, medications, suspected diagnosis, resources needed, estimated arrival</li>
+        <li>Report published to MQTT topic: evp/medical/report → forwarded to hospital dashboard</li>
+        <li>Fully offline capable — no cloud API needed for medical processing</li>
+      </ul>
+    </div>
+
+    <div class="sub-card s5">
+      <span class="sub-icon">🏥</span>
+      <div class="sub-num">Subsystem 05 — Hospital Readiness</div>
+      <div class="sub-title">Pre-Arrival Dashboard</div>
+      <div class="sub-desc">The hospital receives the complete patient brief before the ambulance arrives. The dashboard auto-populates with all medical data, shows a live ETA countdown, and lists required resources — so the medical team is ready the moment the patient enters the building.</div>
+      <ul class="sub-details">
+        <li>React dashboard connects to Flask backend via WebSocket for live updates</li>
+        <li>Patient card populates automatically — zero manual data entry</li>
+        <li>ETA countdown computed from live GPS position and estimated route distance</li>
+        <li>Resource flags auto-set: Stretcher, Defib, ICU bed, Cardiologist, OR</li>
+        <li>PDF export of pre-arrival report available for physical handoff</li>
+        <li>Multi-case view for hospitals handling multiple simultaneous emergencies</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- HARDWARE -->
+<section id="hardware">
+  <div class="section-label"><span class="num">03</span> Hardware Requirements</div>
+  <h2 class="section-title">Minimal hardware.<br>Maximum impact.</h2>
+  <p class="section-desc">Every component below is chosen for availability, low cost, and hackathon buildability. The total additional hardware spend beyond what you already have is under ₹2,000.</p>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div><span class="hl">Already have:</span> Raspberry Pi 4 (any RAM, 8GB+ SD card recommended). <span class="hl">Jetson Nano not required</span> — the Pi handles everything including AI inference via Ollama. Drop the Jetson from your list completely.</div>
+  </div>
+
+  <div class="hw-grid">
+    <div class="hw-card">
+      <div class="hw-card-header">
+        <div class="hw-icon red">🍓</div>
+        <div>
+          <div class="hw-name">Raspberry Pi 4</div>
+          <div class="hw-role">Central Brain — Already Available</div>
+        </div>
+      </div>
+      <ul class="hw-specs">
+        <li><span class="key">RAM</span><span class="val">2GB min / 4GB+ ideal</span></li>
+        <li><span class="key">Storage</span><span class="val">16GB+ SD Card</span></li>
+        <li><span class="key">OS</span><span class="val">Raspberry Pi OS Lite (64-bit)</span></li>
+        <li><span class="key">Runs</span><span class="val">MQTT, Flask, Ollama, GPIO</span></li>
+        <li><span class="key">GPIO Pins Used</span><span class="val">18, 23, 24 (LED R/Y/G)</span></li>
+      </ul>
+      <div class="hw-price"><span>Already in your kit</span><span class="price">₹0</span></div>
+    </div>
+
+    <div class="hw-card">
+      <div class="hw-card-header">
+        <div class="hw-icon cyan">📡</div>
+        <div>
+          <div class="hw-name">ESP32-WROOM-32</div>
+          <div class="hw-role">Ambulance Tracker — On the Toy</div>
+        </div>
+      </div>
+      <ul class="hw-specs">
+        <li><span class="key">Connectivity</span><span class="val">WiFi 802.11 b/g/n</span></li>
+        <li><span class="key">Protocol</span><span class="val">MQTT over WiFi (no LoRa needed)</span></li>
+        <li><span class="key">Framework</span><span class="val">Arduino / ESP-IDF</span></li>
+        <li><span class="key">Power</span><span class="val">USB powerbank or 9V battery</span></li>
+        <li><span class="key">Note</span><span class="val">LoRa for production; WiFi for demo</span></li>
+      </ul>
+      <div class="hw-price"><span>Approx cost</span><span class="price">₹400</span></div>
+    </div>
+
+    <div class="hw-card">
+      <div class="hw-card-header">
+        <div class="hw-icon amber">🛰</div>
+        <div>
+          <div class="hw-name">NEO-6M GPS Module</div>
+          <div class="hw-role">Position Tracking on Ambulance</div>
+        </div>
+      </div>
+      <ul class="hw-specs">
+        <li><span class="key">Protocol</span><span class="val">UART / NMEA 0183</span></li>
+        <li><span class="key">Update Rate</span><span class="val">1 Hz (1 fix per second)</span></li>
+        <li><span class="key">Accuracy</span><span class="val">2.5m CEP outdoor</span></li>
+        <li><span class="key">Library</span><span class="val">TinyGPS++ (Arduino)</span></li>
+        <li><span class="key">Indoor fallback</span><span class="val">Pre-recorded JSON route replay</span></li>
+      </ul>
+      <div class="hw-price"><span>Approx cost</span><span class="price">₹350</span></div>
+    </div>
+
+    <div class="hw-card">
+      <div class="hw-card-header">
+        <div class="hw-icon green">🚦</div>
+        <div>
+          <div class="hw-name">LED + Breadboard Setup</div>
+          <div class="hw-role">Traffic Light Demo Prop</div>
+        </div>
+      </div>
+      <ul class="hw-specs">
+        <li><span class="key">LEDs</span><span class="val">Red, Yellow, Green (5mm)</span></li>
+        <li><span class="key">Resistors</span><span class="val">220Ω × 3</span></li>
+        <li><span class="key">Control</span><span class="val">RPi GPIO via RPi.GPIO library</span></li>
+        <li><span class="key">Connection</span><span class="val">Jumper wires to Pi GPIO header</span></li>
+        <li><span class="key">Pins</span><span class="val">GPIO 18 (R), 23 (Y), 24 (G)</span></li>
+      </ul>
+      <div class="hw-price"><span>Approx cost</span><span class="price">₹150</span></div>
+    </div>
+
+    <div class="hw-card">
+      <div class="hw-card-header">
+        <div class="hw-icon red">🚑</div>
+        <div>
+          <div class="hw-name">Toy Ambulance</div>
+          <div class="hw-role">Physical Demo Prop</div>
+        </div>
+      </div>
+      <ul class="hw-specs">
+        <li><span class="key">Type</span><span class="val">Any toy ambulance ~15cm+</span></li>
+        <li><span class="key">Mount</span><span class="val">Velcro or zip-tie ESP32 + GPS on roof</span></li>
+        <li><span class="key">Movement</span><span class="val">Push by hand on table track</span></li>
+        <li><span class="key">Map update</span><span class="val">GPS replay animates dashboard dot</span></li>
+        <li><span class="key">Available at</span><span class="val">Any toy shop / Flipkart</span></li>
+      </ul>
+      <div class="hw-price"><span>Approx cost</span><span class="price">₹200–400</span></div>
+    </div>
+
+    <div class="hw-card">
+      <div class="hw-card-header">
+        <div class="hw-icon amber">🎙</div>
+        <div>
+          <div class="hw-name">USB Microphone</div>
+          <div class="hw-role">En-route Audio Capture on Pi</div>
+        </div>
+      </div>
+      <ul class="hw-specs">
+        <li><span class="key">Connection</span><span class="val">USB-A to Raspberry Pi</span></li>
+        <li><span class="key">Library</span><span class="val">PyAudio / sounddevice</span></li>
+        <li><span class="key">Demo mode</span><span class="val">Pre-recorded .wav clip played</span></li>
+        <li><span class="key">Sample rate</span><span class="val">16kHz mono (VibeVoice-ASR req.)</span></li>
+        <li><span class="key">Note</span><span class="val">Any cheap USB mic works fine</span></li>
+      </ul>
+      <div class="hw-price"><span>If not available</span><span class="price">₹300–600</span></div>
+    </div>
+  </div>
+
+  <div class="callout tip" style="margin-top:32px;">
+    <span class="callout-icon">💡</span>
+    <div><span class="hl green">Total additional spend:</span> Approximately ₹1,100–1,900 beyond hardware you already own. The Raspberry Pi does all the heavy lifting — AI inference, MQTT brokering, GPIO control, and API serving all run on a single board.</div>
+  </div>
+</section>
+
+<!-- AI MODELS -->
+<section id="ai-models">
+  <div class="section-label"><span class="num">04</span> AI Models</div>
+  <h2 class="section-title">Two models.<br>All the intelligence.</h2>
+  <p class="section-desc">The entire AI layer is built on two open-source models — one for voice understanding, one for medical reasoning. Both run locally where possible, with cloud API as a fallback for the hackathon demo.</p>
+
+  <div class="ai-grid">
+    <div class="ai-card vibevoice">
+      <div class="ai-badge cyan">🎙 Microsoft</div>
+      <div class="ai-title">VibeVoice-ASR-7B</div>
+      <div class="ai-model">Hugging Face: microsoft/VibeVoice-ASR</div>
+      <div class="ai-desc">A unified speech-to-text model that processes up to 60 minutes of audio in a single pass. It jointly performs transcription, speaker diarization, and timestamping — producing a rich, structured output of who said what and when. Multilingual, supporting 50+ languages including Hindi, Kannada, and other Indian languages.</div>
+
+      <div class="ai-feature">
+        <div class="dot cyan"></div>
+        <div><span class="hl">Where it runs:</span> Laptop / cloud API for hackathon demo. Raspberry Pi is too limited for 7B inference — use Hugging Face Inference API or a laptop running it locally.</div>
+      </div>
+      <div class="ai-feature">
+        <div class="dot cyan"></div>
+        <div><span class="hl">Key capability used:</span> Long-form single-pass ASR with speaker diarization for the ambulance en-route audio capture.</div>
+      </div>
+      <div class="ai-feature">
+        <div class="dot cyan"></div>
+        <div><span class="hl">Customized hotwords:</span> Pre-register medical terms — "myocardial infarction", "GCS score", "BP 90/60" — to boost accuracy on emergency audio.</div>
+      </div>
+      <div class="ai-feature">
+        <div class="dot cyan"></div>
+        <div><span class="hl">Output:</span> Structured JSON with speaker labels, timestamps, and full transcription → fed into Gemma 4 for report generation.</div>
+      </div>
+      <div class="ai-feature">
+        <div class="dot cyan"></div>
+        <div><span class="hl">vLLM support:</span> For production, VibeVoice-ASR supports vLLM inference for significantly faster throughput.</div>
+      </div>
+    </div>
+
+    <div class="ai-card gemma">
+      <div class="ai-badge amber">🤖 Google DeepMind</div>
+      <div class="ai-title">Gemma 4 E4B</div>
+      <div class="ai-model">4.5B active parameters — Runs on Raspberry Pi via Ollama</div>
+      <div class="ai-desc">Gemma 4's most efficient dense model, with 4.5B effective parameters and a 128K context window. It runs on consumer hardware via Ollama — including Raspberry Pi 4 with 4GB+ RAM. Used for two tasks: parsing emergency intake transcripts into structured JSON, and converting raw ambulance audio transcripts into clean, doctor-ready medical briefs.</div>
+
+      <div class="ai-feature">
+        <div class="dot amber"></div>
+        <div><span class="hl">Where it runs:</span> Ollama on Raspberry Pi 4 (4GB RAM). Quantized to Q4_K_M for efficient inference. Inference time: 15–45 seconds per report — acceptable for the demo.</div>
+      </div>
+      <div class="ai-feature">
+        <div class="dot amber"></div>
+        <div><span class="hl">Task 1 — Intake parsing:</span> Receives raw transcription of emergency call → outputs structured JSON: { "location": "...", "severity": "HIGH", "symptoms": [...], "caller_language": "Kannada" }</div>
+      </div>
+      <div class="ai-feature">
+        <div class="dot amber"></div>
+        <div><span class="hl">Task 2 — Medical brief:</span> Receives VibeVoice-ASR transcript of en-route nurse audio → outputs formatted medical brief with Chief Complaint, Vitals, Suspected Diagnosis, Resources Required, ETA.</div>
+      </div>
+      <div class="ai-feature">
+        <div class="dot amber"></div>
+        <div><span class="hl">Architecture:</span> Hybrid attention (sliding window 512 + full global attention), 128K context window, multilingual, native function calling support.</div>
+      </div>
+      <div class="ai-feature">
+        <div class="dot amber"></div>
+        <div><span class="hl">Privacy angle:</span> Runs fully offline on the Pi. Patient audio and medical data never leave the device. HIPAA-compliant by design.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin-top: 24px;">
+    <span class="callout-icon">ℹ</span>
+    <div>For the <span class="hl">hackathon demo</span>, run VibeVoice-ASR via its <a href="https://aka.ms/vibevoice-asr" style="color: var(--cyan);">online Playground API</a> or via the Hugging Face Transformers library on a laptop. Run Gemma 4 E4B on the Raspberry Pi via Ollama. This way the Pi stays cool and you get fast ASR without taxing the hardware.</div>
+  </div>
+
+  <div style="margin-top: 32px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 28px;">
+    <div class="broker-label" style="font-size: 11px; color: var(--amber); letter-spacing: 0.15em; margin-bottom: 16px;">GEMMA 4 PROMPT — MEDICAL BRIEF GENERATION</div>
+    <div class="code-block">
+<span class="comment"># System prompt for Gemma 4 E4B medical brief generation</span>
+
+<span class="keyword">SYSTEM_PROMPT</span> = <span class="string">"""
+You are a medical triage assistant AI running in an emergency ambulance.
+You receive raw audio transcriptions from paramedics and nurses.
+Extract and structure a clean, concise pre-arrival report for the receiving hospital.
+
+Output ONLY valid JSON with this exact structure:
+{
+  "case_id": "...",
+  "chief_complaint": "...",
+  "vitals": { "bp": "...", "hr": "...", "spo2": "...", "gcs": "..." },
+  "symptoms": [...],
+  "suspected_diagnosis": "...",
+  "allergies": [...],
+  "current_medications": [...],
+  "resources_required": [...],
+  "estimated_arrival_minutes": ...,
+  "severity": "CRITICAL | HIGH | MEDIUM | LOW",
+  "notes": "..."
+}
+
+Be concise. Use medical shorthand where appropriate. Fill missing fields with null.
+"""</span>
+    </div>
+  </div>
+</section>
+
+<!-- COMMUNICATION ARCHITECTURE -->
+<section id="comms">
+  <div class="section-label"><span class="num">05</span> Communication Architecture</div>
+  <h2 class="section-title">MQTT: The nervous<br>system of SmartEVP+</h2>
+  <p class="section-desc">All real-time communication between the ESP32, Raspberry Pi, LED array, and dashboard flows through a single MQTT message broker running on the Pi. This is lightweight, reliable, and works entirely on a local WiFi network.</p>
+
+  <div class="mqtt-flow">
+    <div class="mqtt-nodes">
+      <div class="mqtt-node">
+        <div class="node-icon">📡</div>
+        <div class="node-name">ESP32</div>
+        <div class="node-role">Publisher only</div>
+        <div class="node-topics">
+          <div class="topic">PUBLISH</div>
+          <div class="topic">evp/gps/&lt;id&gt;</div>
+        </div>
+      </div>
+
+      <div style="font-size: 24px; color: var(--text-muted);">→</div>
+
+      <div class="mqtt-node mqtt-broker">
+        <div class="node-icon">⚡</div>
+        <div class="node-name">Mosquitto Broker</div>
+        <div class="node-role">On Raspberry Pi :1883</div>
+        <div class="node-topics">
+          <div class="topic" style="color: var(--cyan);">ALL TOPICS</div>
+        </div>
+      </div>
+
+      <div style="font-size: 24px; color: var(--text-muted);">→</div>
+
+      <div class="mqtt-node">
+        <div class="node-icon">🍓</div>
+        <div class="node-name">Pi App</div>
+        <div class="node-role">Subscribe + Publish</div>
+        <div class="node-topics">
+          <div class="topic">SUB: gps</div>
+          <div class="topic">PUB: signal/cmd</div>
+          <div class="topic">PUB: medical/report</div>
+        </div>
+      </div>
+
+      <div style="font-size: 24px; color: var(--text-muted);">→</div>
+
+      <div class="mqtt-node">
+        <div class="node-icon">🖥</div>
+        <div class="node-name">Dashboard</div>
+        <div class="node-role">Subscriber only</div>
+        <div class="node-topics">
+          <div class="topic">SUB: gps</div>
+          <div class="topic">SUB: signal/cmd</div>
+          <div class="topic">SUB: medical/report</div>
+        </div>
+      </div>
+
+      <div style="font-size: 24px; color: var(--text-muted);">→</div>
+
+      <div class="mqtt-node">
+        <div class="node-icon">🚦</div>
+        <div class="node-name">LEDs (GPIO)</div>
+        <div class="node-role">Physical output</div>
+        <div class="node-topics">
+          <div class="topic">Triggered by Pi</div>
+          <div class="topic">on signal/cmd</div>
+        </div>
+      </div>
+    </div>
+
+    <table class="topics-table">
+      <thead>
+        <tr>
+          <th>MQTT Topic</th>
+          <th>Publisher</th>
+          <th>Subscribers</th>
+          <th>Payload (JSON)</th>
+          <th>Trigger</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>evp/gps/&lt;vehicle_id&gt;</td>
+          <td>ESP32</td>
+          <td>Pi App, Dashboard</td>
+          <td>{ lat, lng, speed, timestamp, signature }</td>
+          <td>Every 1 second continuously</td>
+        </tr>
+        <tr>
+          <td>evp/signal/cmd</td>
+          <td>Pi App</td>
+          <td>Pi GPIO controller, Dashboard</td>
+          <td>{ intersection_id, action: "GREEN" | "RESTORE", vehicle_id }</td>
+          <td>When vehicle &lt; 500m from intersection</td>
+        </tr>
+        <tr>
+          <td>evp/dispatch/event</td>
+          <td>Flask API</td>
+          <td>Dashboard, Hospital</td>
+          <td>{ case_id, ambulance_id, caller_location, severity, timestamp }</td>
+          <td>On emergency intake completion</td>
+        </tr>
+        <tr>
+          <td>evp/medical/report</td>
+          <td>Pi App (Gemma 4)</td>
+          <td>Hospital Dashboard</td>
+          <td>{ case_id, chief_complaint, vitals, diagnosis, resources, eta }</td>
+          <td>On en-route audio transcription complete</td>
+        </tr>
+        <tr>
+          <td>evp/system/status</td>
+          <td>Pi App</td>
+          <td>Dashboard</td>
+          <td>{ uptime, active_vehicles, intersection_status, broker_health }</td>
+          <td>Every 10 seconds (heartbeat)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code-block" style="margin-top: 24px;">
+<span class="comment"># ESP32 GPS Publisher (simplified Arduino/C++)</span>
+<span class="keyword">void</span> publishGPS() {
+  StaticJsonDocument&lt;256&gt; doc;
+  doc[<span class="string">"lat"</span>] = gps.location.lat();
+  doc[<span class="string">"lng"</span>] = gps.location.lng();
+  doc[<span class="string">"timestamp"</span>] = millis();
+  doc[<span class="string">"vehicle_id"</span>] = <span class="string">"AMB_001"</span>;
+  doc[<span class="string">"signature"</span>] = signPayload(doc); <span class="comment">// ECC-256</span>
+
+  String payload;
+  serializeJson(doc, payload);
+  <span class="topic">client.publish("evp/gps/AMB_001"</span>, payload.c_str());
+}
+
+<span class="comment"># Raspberry Pi MQTT Subscriber + Signal Logic (Python)</span>
+<span class="keyword">def</span> on_message(client, userdata, msg):
+  data = json.loads(msg.payload)
+  dist = haversine(data[<span class="string">'lat'</span>], data[<span class="string">'lng'</span>], INTERSECTION_LAT, INTERSECTION_LNG)
+
+  <span class="keyword">if</span> dist &lt; 500 <span class="keyword">and not</span> signal_active:
+    trigger_green_light()  <span class="comment"># GPIO.output(GREEN_PIN, HIGH)</span>
+    client.publish(<span class="topic">"evp/signal/cmd"</span>, json.dumps({<span class="string">"action"</span>: <span class="string">"GREEN"</span>}))
+    log_preemption_event(data)
+  </div>
+</section>
+
+<!-- SOFTWARE REQUIREMENTS -->
+<section id="software">
+  <div class="section-label"><span class="num">06</span> Software Requirements</div>
+  <h2 class="section-title">The complete<br>software stack.</h2>
+  <p class="section-desc">Every library, framework, and service needed to build and run SmartEVP+. Grouped by the hardware it runs on.</p>
+
+  <div class="sw-grid">
+    <div class="sw-group">
+      <div class="sw-group-header">🍓 Raspberry Pi</div>
+      <div class="sw-item"><span class="sw-name">Raspberry Pi OS</span><span class="sw-ver">64-bit Lite</span></div>
+      <div class="sw-item"><span class="sw-name">Python</span><span class="sw-ver">3.11+</span></div>
+      <div class="sw-item"><span class="sw-name">Mosquitto MQTT</span><span class="sw-ver">2.x</span></div>
+      <div class="sw-item"><span class="sw-name">Paho-MQTT (Python)</span><span class="sw-ver">1.6+</span></div>
+      <div class="sw-item"><span class="sw-name">Flask</span><span class="sw-ver">3.x</span></div>
+      <div class="sw-item"><span class="sw-name">Flask-SocketIO</span><span class="sw-ver">5.x</span></div>
+      <div class="sw-item"><span class="sw-name">Ollama</span><span class="sw-ver">latest</span></div>
+      <div class="sw-item"><span class="sw-name">Gemma 4 E4B (Q4_K_M)</span><span class="sw-ver">via Ollama</span></div>
+      <div class="sw-item"><span class="sw-name">RPi.GPIO</span><span class="sw-ver">0.7+</span></div>
+      <div class="sw-item"><span class="sw-name">PyAudio / sounddevice</span><span class="sw-ver">audio capture</span></div>
+      <div class="sw-item"><span class="sw-name">cryptography (ECC)</span><span class="sw-ver">41+</span></div>
+      <div class="sw-item"><span class="sw-name">requests</span><span class="sw-ver">HTTP calls</span></div>
+    </div>
+
+    <div class="sw-group">
+      <div class="sw-group-header">📡 ESP32 Firmware</div>
+      <div class="sw-item"><span class="sw-name">Arduino IDE / PlatformIO</span><span class="sw-ver">2.x</span></div>
+      <div class="sw-item"><span class="sw-name">TinyGPS++</span><span class="sw-ver">GPS parsing</span></div>
+      <div class="sw-item"><span class="sw-name">ArduinoJson</span><span class="sw-ver">6.x</span></div>
+      <div class="sw-item"><span class="sw-name">PubSubClient (MQTT)</span><span class="sw-ver">2.8+</span></div>
+      <div class="sw-item"><span class="sw-name">WiFi.h</span><span class="sw-ver">ESP32 built-in</span></div>
+      <div class="sw-item"><span class="sw-name">mbedTLS</span><span class="sw-ver">ECC-256 signing</span></div>
+    </div>
+
+    <div class="sw-group">
+      <div class="sw-group-header">🎙 AI — Voice & NLP</div>
+      <div class="sw-item"><span class="sw-name">VibeVoice-ASR-7B</span><span class="sw-ver">via HF Transformers</span></div>
+      <div class="sw-item"><span class="sw-name">transformers</span><span class="sw-ver">5.3+ (HF)</span></div>
+      <div class="sw-item"><span class="sw-name">torch</span><span class="sw-ver">2.x (for ASR laptop)</span></div>
+      <div class="sw-item"><span class="sw-name">Gemma 4 E4B</span><span class="sw-ver">via Ollama on Pi</span></div>
+      <div class="sw-item"><span class="sw-name">ollama (Python SDK)</span><span class="sw-ver">0.x</span></div>
+      <div class="sw-item"><span class="sw-name">Twilio Python SDK</span><span class="sw-ver">call + SMS</span></div>
+    </div>
+
+    <div class="sw-group">
+      <div class="sw-group-header">🖥 Frontend / Dashboard</div>
+      <div class="sw-item"><span class="sw-name">React</span><span class="sw-ver">18+</span></div>
+      <div class="sw-item"><span class="sw-name">Tailwind CSS</span><span class="sw-ver">3.x</span></div>
+      <div class="sw-item"><span class="sw-name">Socket.IO Client</span><span class="sw-ver">4.x</span></div>
+      <div class="sw-item"><span class="sw-name">Leaflet.js</span><span class="sw-ver">map + GPS dot</span></div>
+      <div class="sw-item"><span class="sw-name">Chart.js / Recharts</span><span class="sw-ver">latency metrics</span></div>
+      <div class="sw-item"><span class="sw-name">Vite</span><span class="sw-ver">build tool</span></div>
+    </div>
+
+    <div class="sw-group">
+      <div class="sw-group-header">📞 External APIs</div>
+      <div class="sw-item"><span class="sw-name">Twilio Voice</span><span class="sw-ver">inbound call handling</span></div>
+      <div class="sw-item"><span class="sw-name">Twilio SMS</span><span class="sw-ver">driver dispatch alerts</span></div>
+      <div class="sw-item"><span class="sw-name">HF Inference API</span><span class="sw-ver">VibeVoice-ASR fallback</span></div>
+      <div class="sw-item"><span class="sw-name">OpenStreetMap / Leaflet</span><span class="sw-ver">no API key needed</span></div>
+    </div>
+
+    <div class="sw-group">
+      <div class="sw-group-header">🔧 Dev & Infra</div>
+      <div class="sw-item"><span class="sw-name">Docker (optional)</span><span class="sw-ver">containerize services</span></div>
+      <div class="sw-item"><span class="sw-name">ngrok</span><span class="sw-ver">Twilio webhook tunneling</span></div>
+      <div class="sw-item"><span class="sw-name">Redis (optional)</span><span class="sw-ver">state caching</span></div>
+      <div class="sw-item"><span class="sw-name">SQLite</span><span class="sw-ver">audit logs on Pi</span></div>
+      <div class="sw-item"><span class="sw-name">GitHub Actions</span><span class="sw-ver">CI if time permits</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO FLOW -->
+<section id="demo">
+  <div class="section-label"><span class="num">07</span> Demo Execution</div>
+  <h2 class="section-title">The 90-second<br>money shot.</h2>
+  <p class="section-desc">This is how you present SmartEVP+ during the hackathon. Every second is scripted. Every judge moment is pre-planned. The demo tells a story — and judges feel every beat of it.</p>
+
+  <div class="callout warn">
+    <span class="callout-icon">🎯</span>
+    <div><span class="hl">Setup before demo:</span> Pi is running and connected to hotspot. MQTT broker active. Dashboard open on laptop (full screen, dark mode). ESP32 powered and publishing GPS coords. LEDs on table, clearly visible to all judges. Twilio number ready on your phone.</div>
+  </div>
+
+  <div class="demo-timeline">
+    <div class="demo-step d1">
+      <div class="demo-time">T = 0s — The Call</div>
+      <div class="demo-title">Judge calls the Twilio number live</div>
+      <div class="demo-desc">You hand your phone to a judge (or call it yourself). The AI voice agent answers instantly — no ringing, no waiting. It says: "Emergency response system active. Please describe your emergency." The judge says: "Heart attack patient near Koramangala, BTM Layout junction."</div>
+    </div>
+
+    <div class="demo-step d2">
+      <div class="demo-time">T = 8s — Intake Complete</div>
+      <div class="demo-title">Dashboard lights up. SMS lands on the table.</div>
+      <div class="demo-desc">The controller dashboard shows a new case card appearing live. Severity: HIGH. Location: BTM Layout, Bengaluru. The driver phone sitting on the table buzzes — judges see the SMS notification land in real time. It reads: "CASE #0041 — DISPATCH IMMEDIATE. Patient: Cardiac event, BTM Layout junction. Respond now."</div>
+    </div>
+
+    <div class="demo-step d3">
+      <div class="demo-time">T = 15s — Ambulance Moves</div>
+      <div class="demo-title">The toy ambulance is pushed. The map dot moves.</div>
+      <div class="demo-desc">You push the toy ambulance slowly across the table. On the big screen, everyone watches the GPS dot animate across the Bengaluru map — live, smooth, real. The dashboard shows speed, bearing, ETA countdown. The ambulance is "en route."</div>
+    </div>
+
+    <div class="demo-step d4">
+      <div class="demo-time">T = 35s — THE MOMENT</div>
+      <div class="demo-title">The ambulance crosses 500m. The lights flip.</div>
+      <div class="demo-desc">The GPS coordinate crosses the threshold. The Pi detects it. MQTT fires. GPIO activates. The three LEDs on the breadboard — previously red — flip to <strong>green</strong>, live, in front of everyone. The dashboard simultaneously shows "SIGNAL PREEMPTION ACTIVE — Intersection 01 — GREEN."</div>
+      <div class="demo-highlight">⬜⬜🟢 This is your silence moment. Say nothing. Let it breathe for 3 seconds.</div>
+    </div>
+
+    <div class="demo-step d5">
+      <div class="demo-time">T = 50s — En-Route Intelligence</div>
+      <div class="demo-title">Nurse audio plays. Gemma 4 transcribes and understands.</div>
+      <div class="demo-desc">You play a 15-second pre-recorded audio clip of a nurse narrating: "Male patient, 58 years old, complaining of chest pain radiating to left arm, BP 90 over 60, HR irregular at 112, SpO2 at 94%. No known allergies. On Aspirin 75mg daily." VibeVoice-ASR transcribes it live on screen. Gemma 4 processes it silently.</div>
+    </div>
+
+    <div class="demo-step d6">
+      <div class="demo-time">T = 70s — Hospital Knows Everything</div>
+      <div class="demo-title">The hospital dashboard auto-fills. Before the ambulance arrives.</div>
+      <div class="demo-desc">Switch the screen to the Hospital Dashboard tab. The medical brief has auto-populated: Chief Complaint: Acute Chest Pain. Suspected: STEMI. Resources Required: Cardiologist, Defib, ICU bed. ETA: 4 minutes. The patient hasn't arrived — but the hospital is ready.</div>
+      <div class="demo-highlight">Then say: "By the time those doors open, the doctor already knows everything."</div>
+    </div>
+  </div>
+
+  <div class="callout tip" style="margin-top: 32px;">
+    <span class="callout-icon">💚</span>
+    <div><span class="hl green">Indoor GPS fallback:</span> If GPS struggles inside the venue, pre-load a 60-point JSON coordinate sequence that traces a route toward the virtual intersection. A Python script replays this at 1Hz, publishing to MQTT exactly as the ESP32 would. Judges see identical behavior. Keep this as your silent backup — activate if GPS fix doesn't come within 60 seconds of powering up.</div>
+  </div>
+</section>
+
+<!-- BUILD PLAN -->
+<section id="build">
+  <div class="section-label"><span class="num">08</span> Build Plan</div>
+  <h2 class="section-title">24 hours.<br>What to build first.</h2>
+  <p class="section-desc">Build in this exact order. Each phase delivers something demoable — so even if you run out of time, you always have something to show. The first 8 hours are the most critical.</p>
+
+  <div class="build-phases">
+    <div class="build-phase">
+      <div class="phase-time">Hours 0–3</div>
+      <div class="phase-title">Infrastructure</div>
+      <div class="phase-task">Install Mosquitto on Pi, test MQTT locally</div>
+      <div class="phase-task">Set up Ollama + pull Gemma 4 E4B model</div>
+      <div class="phase-task">Flash ESP32 with GPS + WiFi + MQTT publish code</div>
+      <div class="phase-task">Wire 3 LEDs to Pi GPIO breadboard</div>
+      <div class="phase-task">Test GPIO pin → LED response in Python</div>
+    </div>
+
+    <div class="build-phase">
+      <div class="phase-time">Hours 3–6</div>
+      <div class="phase-title">Preemption Core</div>
+      <div class="phase-task">Write Pi MQTT subscriber + haversine distance logic</div>
+      <div class="phase-task">Implement threshold detection → GPIO LED flip</div>
+      <div class="phase-task">Test full loop: ESP32 → MQTT → Pi → LED</div>
+      <div class="phase-task">Build GPS coordinate replay fallback script</div>
+      <div class="phase-task">Verify sub-5s end-to-end latency</div>
+    </div>
+
+    <div class="build-phase">
+      <div class="phase-time">Hours 6–10</div>
+      <div class="phase-title">AI Voice Intake</div>
+      <div class="phase-task">Set up Twilio number + ngrok webhook tunnel</div>
+      <div class="phase-task">Integrate VibeVoice-ASR for call transcription</div>
+      <div class="phase-task">Write Gemma 4 prompt for intake JSON parsing</div>
+      <div class="phase-task">Implement Twilio SMS dispatch to driver phone</div>
+      <div class="phase-task">Test full call-to-SMS pipeline</div>
+    </div>
+
+    <div class="build-phase">
+      <div class="phase-time">Hours 10–14</div>
+      <div class="phase-title">Medical AI</div>
+      <div class="phase-task">Wire PyAudio mic capture to VibeVoice-ASR</div>
+      <div class="phase-task">Write Gemma 4 medical brief generation prompt</div>
+      <div class="phase-task">Test transcript → structured brief output</div>
+      <div class="phase-task">Publish medical report to MQTT</div>
+      <div class="phase-task">Prepare demo audio .wav clip as backup</div>
+    </div>
+
+    <div class="build-phase">
+      <div class="phase-time">Hours 14–20</div>
+      <div class="phase-title">Dashboard</div>
+      <div class="phase-task">Build React app with dark theme + Tailwind</div>
+      <div class="phase-task">Implement Leaflet map with live GPS dot</div>
+      <div class="phase-task">WebSocket subscription to all MQTT topics</div>
+      <div class="phase-task">Hospital dashboard panel with medical brief</div>
+      <div class="phase-task">Signal status panel + LED state indicator</div>
+    </div>
+
+    <div class="build-phase">
+      <div class="phase-time">Hours 20–24</div>
+      <div class="phase-title">Polish & Rehearse</div>
+      <div class="phase-task">End-to-end full demo run × 3</div>
+      <div class="phase-task">Fix any latency issues, tighten thresholds</div>
+      <div class="phase-task">Prepare demo script + judge talking points</div>
+      <div class="phase-task">Prepare GPS fallback and verify it works</div>
+      <div class="phase-task">Print 1 A4 architecture diagram as handout</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">SmartEVP+ — ERIS v2.0</div>
+  <div class="footer-meta">Team V3 · TechnoCognition'25 · Dayananda Sagar University · Bengaluru</div>
+  <div class="footer-meta" style="color: var(--border2);">AI: VibeVoice-ASR-7B × Gemma 4 E4B · Hardware: Raspberry Pi 4 + ESP32 + NEO-6M</div>
+</footer>
+
+</div>
+</body>
+</html>
